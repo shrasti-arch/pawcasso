@@ -173,6 +173,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
 .pophead{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--panel);padding:12px 0 6px}
 .pophead h2{margin:0;font-size:17px;font-weight:700}
 .pane{display:flex;flex-direction:column;gap:14px}
+.pop[data-pane=settings] .pane+.pane{border-top:1px solid var(--line);padding-top:14px}
 .sub{margin:0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .btiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .bpick{width:100%;min-height:86px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px 4px;border:1px solid var(--line);border-radius:14px;background:var(--chip);color:var(--ink)}
@@ -182,7 +183,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
 .btile .bedit{top:4px;right:4px;width:28px;height:28px}
 .btile .bedit svg{width:14px;height:14px}
 .newbrush{min-height:86px}
-.sizeprev{height:120px;border-radius:14px;background:#fff;border:1px solid var(--line);display:grid;place-items:center}
+.sizeprev{height:76px;border-radius:14px;background:#fff;border:1px solid var(--line);display:grid;place-items:center}
 .sizeprev .dot{background:var(--ink)}
 .pop .shades button{aspect-ratio:auto;height:34px}
 .pop .swatches{grid-template-columns:repeat(auto-fill,minmax(42px,1fr))}
@@ -222,12 +223,10 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
 
   <nav class="rail" aria-label="Tools and panels">
     <button class="tool" data-tool="fill" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 11.4L11 4l8 8-7.4 7.4a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8z"/><path d="M3.5 12.5h15"/><path d="M8.5 6.5L6 4"/><path d="M21 15.5c.8 1.3 1.3 2.2 1.3 2.9a1.3 1.3 0 0 1-2.6 0c0-.7.5-1.6 1.3-2.9z"/></svg>Fill</button>
-    <button class="tool" data-tool="paint" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18.4 2.8a2 2 0 0 1 2.8 2.8L12 14.8 9.2 12z"/><path d="M9 13.2c-2.1 0-3.6 1.5-3.6 3.6 0 1.4-1 2.4-2.4 2.9 3.2 1.2 7.4.6 8.7-2.6"/></svg>Paint</button>
+    <button class="tool" data-tool="paint" data-pane="brushes" aria-pressed="false" aria-expanded="false" aria-controls="pop"><span class="ricon" id="railBrush"></span>Brushes</button>
     <button class="tool" data-tool="eraser" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h13"/><path d="M3.6 13.4l9-9a2 2 0 0 1 2.8 0l4.2 4.2a2 2 0 0 1 0 2.8L12 19H7.6z"/><path d="M8.2 8.8l7 7"/></svg>Eraser</button>
     <div class="sep" role="presentation"></div>
     <button class="tool" data-pane="color" aria-expanded="false" aria-controls="pop"><span class="sw" id="railSw"></span>Colour</button>
-    <button class="tool" data-pane="brushes" aria-expanded="false" aria-controls="pop"><span class="ricon" id="railBrush"></span>Brushes</button>
-    <button class="tool" data-pane="size" aria-expanded="false" aria-controls="pop"><span class="ricon"><span class="rdot" id="railDot"></span></span>Size</button>
     <button class="tool" data-pane="settings" aria-expanded="false" aria-controls="pop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Settings</button>
   </nav>
 
@@ -244,7 +243,15 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
   <aside class="pop" id="pop" hidden aria-labelledby="popTitle">
     <div class="pophead"><h2 id="popTitle">Colour</h2><button class="ibtn" id="popClose" aria-label="Close panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 
-    <div class="pane" data-pane="color">
+    <div class="pane" data-in="settings" hidden>
+      <h3 class="sub">Size &amp; opacity</h3>
+      <div class="sizeprev"><div class="dot" id="dot"></div></div>
+      <div class="row"><label for="size">Size</label><input type="range" id="size" min="1" max="100"><output id="szOut"></output></div>
+      <div class="row"><label for="opacity">Opacity</label><input type="range" id="opacity" min="10" max="100"><output id="opOut"></output></div>
+    </div>
+
+    <div class="pane" data-in="color settings" hidden>
+      <h3 class="sub inset" data-only="settings">Colour</h3>
       <div class="current">
         <div class="bigsw" id="bigSw"></div>
         <label class="hexwrap" for="hexIn"><span aria-hidden="true">#</span><input id="hexIn" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="7" aria-label="Hex colour code"></label>
@@ -257,18 +264,13 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
       <section class="sec" id="recentSec" hidden><h3 class="sub">Recently used</h3><div class="recent" id="recent"></div></section>
     </div>
 
-    <div class="pane" data-pane="brushes" hidden>
+    <div class="pane" data-in="brushes" hidden>
       <div class="chips" id="brushCats" role="tablist" aria-label="Brush type"></div>
       <div class="btiles" id="brushGrid"></div>
     </div>
 
-    <div class="pane" data-pane="size" hidden>
-      <div class="sizeprev"><div class="dot" id="dot"></div></div>
-      <div class="row"><label for="size">Size</label><input type="range" id="size" min="1" max="100"><output id="szOut"></output></div>
-      <div class="row"><label for="opacity">Opacity</label><input type="range" id="opacity" min="10" max="100"><output id="opOut"></output></div>
-    </div>
-
-    <div class="pane" data-pane="settings" hidden>
+    <div class="pane" data-in="settings" hidden>
+      <h3 class="sub">Helpers &amp; sound</h3>
       <label class="switch">Fill stops at my painting<input type="checkbox" id="smartFill"></label>
       <p class="note">Fill colours only the blank or same-coloured area you tap, so it never paints over brush work you've already done.</p>
       <label class="switch">Stay inside the lines<input type="checkbox" id="stay"></label>
@@ -775,13 +777,13 @@ function renderBrushGrid(){if(!brushCat)brushCat=catOf(curDef()===ERASER?BRUSHES
  const nb=el('button','newbrush');nb.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';nb.append('Create brush');nb.onclick=()=>openEditor(null);g.append(nb);}
 function updRail(){const sw=document.getElementById('railSw');if(!sw)return;sw.style.background=S.color;
  const d=curDef();$('#railBrush').innerHTML=iconFor(d===ERASER?(findBrush(S.brush)||BRUSHES[0]):d);
- const rd=$('#railDot'),px=Math.max(4,Math.min(22,4+S.size*.18));rd.style.width=rd.style.height=px+'px';}
-const PANE_TITLES={color:'Colour',brushes:'Brushes',size:'Size & opacity',settings:'Settings'};
+ }
+const PANE_TITLES={color:'Colour',brushes:'Brushes',settings:'Settings'};
 function openPane(name){const pop=$('#pop');if(!pop.hidden&&pop.dataset.pane===name){closePane();return;}
- pop.dataset.pane=name;pop.hidden=false;document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==name);$('#popTitle').textContent=PANE_TITLES[name];
+ pop.dataset.pane=name;pop.hidden=false;document.querySelectorAll('.pane').forEach(p=>p.hidden=!p.dataset.in.split(' ').includes(name));document.querySelectorAll('[data-only]').forEach(h=>h.hidden=h.dataset.only!==name);pop.scrollTop=0;$('#popTitle').textContent=PANE_TITLES[name];
  document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded',b.dataset.pane===name));if(name==='brushes')renderBrushGrid();}
 function closePane(){$('#pop').hidden=true;document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded','false'));}
-document.querySelectorAll('button[data-pane]').forEach(b=>b.onclick=()=>openPane(b.dataset.pane));
+document.querySelectorAll('button[data-pane]').forEach(b=>b.onclick=()=>{if(b.dataset.tool)setTool(b.dataset.tool);openPane(b.dataset.pane);});
 $('#popClose').onclick=closePane;
 function schedulePreviews(){updRail();}
 const SHAPE_OPTS=[['round','Soft round'],['water','Watercolor'],['grain','Grainy'],['square','Chalk'],['flat','Flat nib'],['dots','Splatter'],['star','Stars'],['line','Smooth line']];
