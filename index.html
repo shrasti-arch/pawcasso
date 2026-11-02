@@ -159,11 +159,41 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
 .edbtns{display:flex;gap:10px;align-items:center}
 .edbtns .primary{margin-left:auto}
 #edDelete.armed{background:var(--danger);border-color:var(--danger);color:#fff}
+
+/* ---- v2 layout: rail of tools + panels, panels pop out on the right ---- */
+.app{grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"top top" "rail stage"}
+.rail .sep{flex:none;height:1px;background:var(--line);margin:4px 8px}
+.sw{width:24px;height:24px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.2),0 0 0 2px var(--panel)}
+.ricon{width:24px;height:24px;display:grid;place-items:center}
+.ricon svg{width:24px;height:24px}
+.rdot{border-radius:50%;background:currentColor}
+.tool[aria-expanded="true"]{background:var(--accent-soft);color:var(--accent)}
+.pop{grid-area:stage;position:relative;z-index:6;justify-self:end;align-self:start;margin:10px;width:min(340px,calc(100% - 20px));max-height:calc(100% - 20px);overflow:auto;box-sizing:border-box;
+  background:var(--panel);border-radius:18px;box-shadow:var(--shadow);padding:0 14px 16px;display:flex;flex-direction:column;gap:14px}
+.pophead{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--panel);padding:12px 0 6px}
+.pophead h2{margin:0;font-size:17px;font-weight:700}
+.pane{display:flex;flex-direction:column;gap:14px}
+.sub{margin:0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.btiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bpick{width:100%;min-height:86px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px 4px;border:1px solid var(--line);border-radius:14px;background:var(--chip);color:var(--ink)}
+.bpick svg{width:30px;height:30px}
+.bpick span{font-size:12px;font-weight:600;text-align:center;line-height:1.2}
+.bpick[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btile .bedit{top:4px;right:4px;width:28px;height:28px}
+.btile .bedit svg{width:14px;height:14px}
+.newbrush{min-height:86px}
+.sizeprev{height:120px;border-radius:14px;background:#fff;border:1px solid var(--line);display:grid;place-items:center}
+.sizeprev .dot{background:var(--ink)}
+.pop .shades button{aspect-ratio:auto;height:34px}
+.pop .swatches{grid-template-columns:repeat(auto-fill,minmax(42px,1fr))}
+.resetv{position:absolute;right:12px;bottom:12px;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-weight:600;font-size:13px;box-shadow:var(--shadow)}
+.resetv svg{width:16px;height:16px}
 @media (max-width:860px),(orientation:portrait) and (max-width:1100px){
-  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top" "stage" "rail" "panel";gap:10px}
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top" "stage" "rail";gap:10px}
   .rail{flex-direction:row;overflow-x:auto;padding:6px}
+  .rail .sep{width:1px;height:auto;margin:6px 4px}
   .tool{min-width:62px;min-height:54px}
-  .panel{max-height:34vh;padding:12px}
+  .pop{justify-self:center;align-self:end;width:min(560px,calc(100% - 20px));max-height:62%}
   .brand{font-size:26px}
   .actions .lbl{display:none}
   .status{display:none}
@@ -181,19 +211,24 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
     <div class="actions">
       <button class="ibtn" id="undoBtn" aria-label="Undo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
       <button class="ibtn" id="redoBtn" aria-label="Redo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
-      <button class="ibtn" id="fitBtn" aria-label="Fit page to screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="ibtn" id="fsBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="lbl">Full screen</span></button>
       <button class="ibtn" id="soundBtn" aria-pressed="true" aria-label="Brush sounds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span class="lbl">Sounds</span></button>
       <button class="ibtn" id="ambBtn" aria-pressed="false" aria-label="Calm background tone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c3-3 6-3 9 0s6 3 9 0"/><path d="M3 13c3-3 6-3 9 0s6 3 9 0"/><path d="M3 18c3-3 6-3 9 0s6 3 9 0"/></svg><span class="lbl">Calm</span></button>
       <button class="ibtn" id="galleryBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span class="lbl">Gallery</span></button>
       <button class="ibtn" id="importBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg><span class="lbl">Import</span></button>
-      <button class="ibtn primary" id="exportBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="lbl">Save to device</span></button>
+      <button class="ibtn primary" id="saveBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/><path d="M8 3v5h7V3"/><rect x="8" y="13" width="8" height="5" rx="1"/></svg><span class="lbl">Save</span></button>
     </div>
   </header>
 
-  <nav class="rail" aria-label="Tools">
+  <nav class="rail" aria-label="Tools and panels">
     <button class="tool" data-tool="fill" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 11.4L11 4l8 8-7.4 7.4a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8z"/><path d="M3.5 12.5h15"/><path d="M8.5 6.5L6 4"/><path d="M21 15.5c.8 1.3 1.3 2.2 1.3 2.9a1.3 1.3 0 0 1-2.6 0c0-.7.5-1.6 1.3-2.9z"/></svg>Fill</button>
     <button class="tool" data-tool="paint" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18.4 2.8a2 2 0 0 1 2.8 2.8L12 14.8 9.2 12z"/><path d="M9 13.2c-2.1 0-3.6 1.5-3.6 3.6 0 1.4-1 2.4-2.4 2.9 3.2 1.2 7.4.6 8.7-2.6"/></svg>Paint</button>
     <button class="tool" data-tool="eraser" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h13"/><path d="M3.6 13.4l9-9a2 2 0 0 1 2.8 0l4.2 4.2a2 2 0 0 1 0 2.8L12 19H7.6z"/><path d="M8.2 8.8l7 7"/></svg>Eraser</button>
+    <div class="sep" role="presentation"></div>
+    <button class="tool" data-pane="color" aria-expanded="false" aria-controls="pop"><span class="sw" id="railSw"></span>Colour</button>
+    <button class="tool" data-pane="brushes" aria-expanded="false" aria-controls="pop"><span class="ricon" id="railBrush"></span>Brushes</button>
+    <button class="tool" data-pane="size" aria-expanded="false" aria-controls="pop"><span class="ricon"><span class="rdot" id="railDot"></span></span>Size</button>
+    <button class="tool" data-pane="settings" aria-expanded="false" aria-controls="pop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Settings</button>
   </nav>
 
   <main class="stage" id="stage" aria-label="Coloring page. Pinch with two fingers to zoom and move.">
@@ -203,15 +238,13 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
       <canvas id="lineC"></canvas>
     </div>
     <div class="hint" id="hint">Tap a shape to fill it · pinch to zoom</div>
+    <button class="resetv" id="resetBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Fit page</button>
   </main>
 
-  <aside class="panel" aria-label="Colour and brush settings">
-    <section class="sec" id="brushSec" hidden>
-      <h2>Brushes</h2>
-      <div class="brushes" id="brushGrid"></div>
-    </section>
-    <section class="sec">
-      <h2>Colour</h2>
+  <aside class="pop" id="pop" hidden aria-labelledby="popTitle">
+    <div class="pophead"><h2 id="popTitle">Colour</h2><button class="ibtn" id="popClose" aria-label="Close panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+
+    <div class="pane" data-pane="color">
       <div class="current">
         <div class="bigsw" id="bigSw"></div>
         <label class="hexwrap" for="hexIn"><span aria-hidden="true">#</span><input id="hexIn" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="7" aria-label="Hex colour code"></label>
@@ -220,33 +253,28 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
       <div class="wheelwrap" id="wheelWrap"><canvas id="wheel" width="480" height="480" aria-label="Colour wheel. Drag the ring to choose a colour, then the square to make it lighter, darker or softer."></canvas><div class="knob hueknob" id="hueKnob"></div><div class="knob" id="knob"></div></div>
       <div class="shades" id="shades" aria-label="Shades of this colour"></div>
       <div class="shades" id="neutrals" aria-label="White, greys and black"></div>
-    </section>
-    <section class="sec">
-      <h2>Palettes</h2>
-      <div class="chips" id="palChips"></div>
-      <div class="swatches" id="swatches"></div>
-    </section>
-    <section class="sec" id="recentSec" hidden>
-      <h2>Recently used</h2>
-      <div class="recent" id="recent"></div>
-    </section>
-    
-    <section class="sec">
-      <h2>Size &amp; opacity</h2>
-      <div class="row"><label for="size">Size</label><input type="range" id="size" min="1" max="100"><div class="dotbox"><div class="dot" id="dot"></div></div></div>
+      <section class="sec"><h3 class="sub">Palettes</h3><div class="chips" id="palChips"></div><div class="swatches" id="swatches"></div></section>
+      <section class="sec" id="recentSec" hidden><h3 class="sub">Recently used</h3><div class="recent" id="recent"></div></section>
+    </div>
+
+    <div class="pane" data-pane="brushes" hidden>
+      <div class="chips" id="brushCats" role="tablist" aria-label="Brush type"></div>
+      <div class="btiles" id="brushGrid"></div>
+    </div>
+
+    <div class="pane" data-pane="size" hidden>
+      <div class="sizeprev"><div class="dot" id="dot"></div></div>
+      <div class="row"><label for="size">Size</label><input type="range" id="size" min="1" max="100"><output id="szOut"></output></div>
       <div class="row"><label for="opacity">Opacity</label><input type="range" id="opacity" min="10" max="100"><output id="opOut"></output></div>
-    </section>
-    <section class="sec">
-      <h2>Helpers</h2>
+    </div>
+
+    <div class="pane" data-pane="settings" hidden>
       <label class="switch">Fill stops at my painting<input type="checkbox" id="smartFill"></label>
       <p class="note">Fill colours only the blank or same-coloured area you tap, so it never paints over brush work you've already done.</p>
       <label class="switch">Stay inside the lines<input type="checkbox" id="stay"></label>
       <p class="note">Brush strokes only colour the shape you start in, so you can paint loosely.</p>
-    </section>
-    <section class="sec">
-      <h2>Sound</h2>
       <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100"><output id="volOut"></output></div>
-    </section>
+    </div>
   </aside>
 </div>
 
@@ -254,7 +282,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
   <div class="card">
     <div class="cardhead"><h3 id="galTitle">Your gallery</h3><button class="ibtn" id="galClose" aria-label="Close gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <section class="sec"><h2>Start a new page</h2><div class="grid" id="tplGrid"></div></section>
-    <section class="sec"><h2>Saved artworks</h2><div class="grid" id="artGrid"></div><p class="note">Artworks are kept in this browser on this tablet. Use Save to device to keep a copy in your Downloads.</p></section>
+    <section class="sec"><h2>Saved artworks</h2><div class="grid" id="artGrid"></div><p class="note">Artworks are kept in this browser on this tablet. Tap the download arrow on any artwork to keep a copy on your device.</p></section>
   </div>
 </div>
 
@@ -273,6 +301,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
     <div class="cardhead"><h3 id="edTitle">Brush maker</h3><button class="ibtn" id="edClose" aria-label="Close brush maker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <canvas class="edprev" id="edPrev" width="600" height="170" aria-label="Preview of your brush"></canvas>
     <label class="field" for="edName">Name<input id="edName" maxlength="24" autocomplete="off"></label>
+    <div class="sec"><h2>Category</h2><div class="chips wrap" id="edCat"></div></div>
     <div class="sec"><h2>Tip shape</h2><div class="chips wrap" id="edShape"></div></div>
     <div class="sec edsliders" id="edSliders"></div>
     <div class="sec"><h2>Rotation</h2><div class="chips wrap" id="edRot"></div></div>
@@ -458,6 +487,7 @@ const BRUSHES=[
  B('sparkle','Sparkle',{shape:'star',spacing:1,flow:.95,scatter:.7,sizeVar:.75,hueVar:.18,rot:'random',pSize:false,sound:'spray'}),
  B('confetti','Confetti',{shape:'round',hard:.9,spacing:1.1,flow:1,scatter:.8,sizeVar:.7,hueVar:1,pSize:false,sound:'spray'})
 ];
+const CATMAP={pencil:'pencil',crayon:'pencil',chalk:'pencil',marker:'marker',highlight:'marker',pen:'marker'};BRUSHES.forEach(b=>b.cat=CATMAP[b.id]||'brush');
 const ERASER=B('eraser','Eraser',{hard:.85,spacing:.1,flow:1,pSize:true,sound:'soft'});
 const SOUNDMAP={soft:'brush',water:'watercolor',grain:'pencil',pen:'pen',marker:'marker',spray:'spray',none:'none'};
 function allBrushes(){return[...BRUSHES,...S.customBrushes];}
@@ -529,10 +559,11 @@ function fillAt(x,y){finishFill();const W=S.smartFill?smartWalls(x,y):wall,reg=W
 
 /* ---------- view: pan & zoom ---------- */
 const stage=$('#stage'),board=$('#board');let view={s:1,tx:0,ty:0},fitS=1;
-function applyView(){board.style.transform=`translate(${view.tx}px,${view.ty}px) scale(${view.s})`;}
+function applyView(){board.style.transform=`translate(${view.tx}px,${view.ty}px) scale(${view.s})`;const rb=document.getElementById('resetBtn');if(rb&&typeof isFit==='function')rb.hidden=isFit();}
 function fit(){const r=stage.getBoundingClientRect();if(!r.width)return;fitS=Math.min(r.width,r.height)*.94/N;view={s:fitS,tx:(r.width-N*fitS)/2,ty:(r.height-N*fitS)/2};applyView();}
 new ResizeObserver(fit).observe(stage);
-$('#fitBtn').onclick=fit;
+$('#resetBtn').onclick=fit;
+function isFit(){const r=stage.getBoundingClientRect();return Math.abs(view.s-fitS)<fitS*.02&&Math.abs(view.tx-(r.width-N*fitS)/2)<6&&Math.abs(view.ty-(r.height-N*fitS)/2)<6;}
 function toCanvas(cx,cy){const r=stage.getBoundingClientRect();return{x:(cx-r.left-view.tx)/view.s,y:(cy-r.top-view.ty)/view.s};}
 function zoomAt(cx,cy,ns){const r=stage.getBoundingClientRect();ns=Math.max(fitS*.6,Math.min(fitS*10,ns));const qx=(cx-r.left-view.tx)/view.s,qy=(cy-r.top-view.ty)/view.s;view={s:ns,tx:cx-r.left-qx*ns,ty:cy-r.top-qy*ns};applyView();}
 stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,view.s*Math.exp(-e.deltaY*.0015));},{passive:false});
@@ -551,7 +582,7 @@ stage.addEventListener('pointerdown',e=>{
  if(e.pointerType==='pen'){penSeen=true;penActive=true;if(gesture){gesture=null;for(const[k,v]of ptrs)if(v.t==='touch')ptrs.delete(k);}}
  if(touch&&penSeen){if(penActive||Math.max(e.width||0,e.height||0)>45)return;
   try{stage.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,t:'touch'});if(gestPts().length>=2)startGesture();return;}
- try{stage.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,t:e.pointerType});Snd.ensure();$('#hint').hidden=true;
+ try{stage.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,t:e.pointerType});Snd.ensure();closePane();$('#hint').hidden=true;
  if(!penSeen&&ptrs.size>=2){if(drawing)cancelStroke();tap=null;startGesture();return;}
  if(drawing)return;
  const pt=toCanvas(e.clientX,e.clientY);
@@ -584,8 +615,8 @@ function scheduleSave(){status('Saving…');clearTimeout(saveT);saveT=setTimeout
 async function saveNow(){if(!doc)return;clearTimeout(saveT);
  try{if(!doc.lineBlob)doc.lineBlob=await toBlob(lineC);const color=await toBlob(colorC);
   await dbPut({id:doc.id,name:doc.name,created:doc.created,updated:Date.now(),line:doc.lineBlob,color,thumb:composite(300).toDataURL('image/jpeg',.85)});
-  lsSet('sw-last',doc.id);status('Saved');}
- catch(e){status('Not saved');if(!saveWarned){saveWarned=true;toast('This browser view can’t keep artworks. Use Save to device.');}}}
+  lsSet('sw-last',doc.id);status('Saved');return true;}
+ catch(e){status('Not saved');toast('This browser view can’t save artworks');return false;}}
 function newDoc(name){doc={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,created:Date.now(),lineBlob:null};$('#docName').value=name;}
 function startTemplate(t){finishFill();cancelStroke();lineX.clearRect(0,0,N,N);prepLine(lineX,4);t.draw(lineX);rebuildWalls();colorX.clearRect(0,0,N,N);resetHist();newDoc(t.name);fit();saveNow();}
 async function openArt(rec){finishFill();cancelStroke();const[l,c]=await Promise.all([createImageBitmap(rec.line),createImageBitmap(rec.color)]);
@@ -593,13 +624,19 @@ async function openArt(rec){finishFill();cancelStroke();const[l,c]=await Promise
  doc={id:rec.id,name:rec.name,created:rec.created,lineBlob:rec.line};$('#docName').value=rec.name;lsSet('sw-last',rec.id);status('Saved');fit();}
 $('#docName').addEventListener('change',e=>{if(!doc)return;doc.name=e.target.value.trim()||'Untitled';e.target.value=doc.name;saveNow();});
 
-/* ---------- export ---------- */
-let dl=null;
-(async()=>{try{if(window.claude&&window.claude.use)dl=await window.claude.use('downloads');}catch(e){dl=null;}$('#exportBtn').hidden=false;})();
-$('#exportBtn').onclick=async()=>{finishFill();const blob=await toBlob(composite(N));const nm=(doc?doc.name:'artwork').replace(/[^\w\- ]+/g,'').trim()||'artwork';
- if(!dl){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Saved to Downloads');return;}
- try{await dl.save({filename:`${nm}.png`,data:blob});toast('Saved to your device');}
- catch(e){if(e&&e.code==='declined')return;if(e&&e.code==='rate_limited'){toast('One moment, then try again');return;}toast('Saving to the device isn’t available here');$('#exportBtn').hidden=true;}};
+/* ---------- save & download ---------- */
+let dl=null;(async()=>{try{if(window.claude&&window.claude.use)dl=await window.claude.use('downloads');}catch(e){dl=null;}})();
+async function downloadBlob(blob,name){const fn=(name||'artwork').replace(/[^\w\- ]+/g,'').trim()||'artwork';
+ if(dl){try{await dl.save({filename:fn+'.png',data:blob});toast('Downloaded');}catch(e){if(e&&e.code==='declined')return;toast(e&&e.code==='rate_limited'?'One moment, then try again':'Downloading isn’t available here');}return;}
+ if(window.claude&&window.claude.use){toast('Downloading isn’t available here');return;}
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn+'.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Saved to Downloads');}
+async function downloadArt(rec){try{const[l,c]=await Promise.all([createImageBitmap(rec.line),createImageBitmap(rec.color)]);const cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+ x.fillStyle='#fff';x.fillRect(0,0,N,N);x.drawImage(c,0,0);x.globalCompositeOperation='multiply';x.drawImage(l,0,0);await downloadBlob(await toBlob(cv),rec.name);}catch(e){toast('That artwork couldn’t be downloaded');}}
+$('#saveBtn').onclick=async()=>{finishFill();if(await saveNow())toast('Saved to your gallery');};
+const fsBtn=$('#fsBtn');
+if(matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches)fsBtn.hidden=true;
+fsBtn.onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(e){toast('Full screen isn’t available here. The installed app already opens full screen.');}};
+document.addEventListener('fullscreenchange',()=>{fsBtn.setAttribute('aria-pressed',!!document.fullscreenElement);setTimeout(fit,120);});
 
 /* ---------- import ---------- */
 let pendingImg=null;
@@ -638,17 +675,18 @@ async function renderArts(){const g=$('#artGrid');g.replaceChildren();let items=
   const del=el('button','del');del.setAttribute('aria-label','Delete '+it.name);del.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
   del.onclick=()=>{const cf=el('div','confirm'),yes=el('button','yes','Delete'),no=el('button',null,'Keep');cf.append(yes,no);meta.replaceChildren(cf);no.onclick=renderArts;
    yes.onclick=async()=>{try{await dbDel(it.id);}catch(e){}if(doc&&doc.id===it.id){doc=null;startTemplate(TEMPLATES[0]);}renderArts();};};
-  meta.append(txt,del);tile.append(b,meta);g.append(tile);}}
+  const dlb=el('button','del');dlb.setAttribute('aria-label','Download '+it.name);dlb.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';dlb.onclick=()=>downloadArt(it);
+  const acts=el('div');acts.style.display='flex';acts.append(dlb,del);meta.append(txt,acts);tile.append(b,meta);g.append(tile);}}
 $('#galleryBtn').onclick=async()=>{finishFill();await saveNow();renderTemplates();renderArts();$('#gallery').hidden=false;};
 $('#galClose').onclick=()=>$('#gallery').hidden=true;
 for(const sh of['#gallery','#importSheet','#brushEd'])$(sh).addEventListener('click',e=>{if(e.target===e.currentTarget){e.currentTarget.hidden=true;}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#gallery').hidden=true;$('#importSheet').hidden=true;$('#brushEd').hidden=true;}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePane();$('#gallery').hidden=true;$('#importSheet').hidden=true;$('#brushEd').hidden=true;}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();(e.shiftKey?$('#redoBtn'):$('#undoBtn')).click();}});
 
 /* ---------- panel UI ---------- */
-function setTool(t){S.tool=t;document.querySelectorAll('.tool').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));Snd.setTool(soundKey());$('#brushSec').hidden=t!=='paint';
+function setTool(t){S.tool=t;document.querySelectorAll('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));Snd.setTool(soundKey());updRail();
  $('#hint').textContent=t==='fill'?'Tap a shape to fill it · pinch to zoom':'Draw to colour · pinch to zoom';saveSettings();updDot();}
-document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 function useColor(c){S.recent=[c,...S.recent.filter(x=>x!==c)].slice(0,8);renderRecent();saveSettings();}
 function setColor(c,fromShade,src){S.color=c.toUpperCase();$('#bigSw').style.background=S.color;if(src!=='hex'){$('#hexIn').value=S.color.slice(1);$('#hexIn').parentElement.classList.remove('bad');}syncWheel(src);
  if(!fromShade)renderShades();markSel();if(S.tool==='eraser')setTool('paint');updDot();schedulePreviews();saveSettings();}
@@ -660,7 +698,7 @@ function renderPalette(){const ch=$('#palChips');ch.replaceChildren(...PALETTES.
 function renderRecent(){$('#recentSec').hidden=!S.recent.length;$('#recent').replaceChildren(...S.recent.map(swatch));markSel();}
 /* eyedropper */
 let dropping=false;
-function setDropping(on){dropping=on;$('#dropBtn').setAttribute('aria-pressed',on);stage.classList.toggle('dropping',on);const h=$('#hint');h.hidden=false;
+function setDropping(on){dropping=on;if(on)closePane();$('#dropBtn').setAttribute('aria-pressed',on);stage.classList.toggle('dropping',on);const h=$('#hint');h.hidden=false;
  h.textContent=on?'Tap your picture to pick a colour':(S.tool==='fill'?'Tap a shape to fill it · pinch to zoom':'Draw to colour · pinch to zoom');}
 function pickAt(x,y){x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=N||y>=N){return;}finishFill();
  const c=document.createElement('canvas');c.width=c.height=1;const k=c.getContext('2d');k.fillStyle='#fff';k.fillRect(0,0,1,1);
@@ -702,7 +740,7 @@ function parseHex(v){v=v.trim().replace(/^#/,'');if(/^[0-9a-f]{3}$/i.test(v))v=v
 hexIn.addEventListener('input',()=>{const c=parseHex(hexIn.value);hexIn.parentElement.classList.toggle('bad',!c&&hexIn.value.replace('#','').length>=6);if(c&&hexIn.value.replace('#','').length>=6)setColor(c,false,'hex');});
 hexIn.addEventListener('change',()=>{const c=parseHex(hexIn.value);if(c){setColor(c);useColor(c);}else{hexIn.value=S.color.slice(1);hexIn.parentElement.classList.remove('bad');toast('Type a 6-character code like E07A93');}});
 hexIn.addEventListener('keydown',e=>{if(e.key==='Enter')hexIn.blur();});
-function updDot(){const d=$('#dot'),px=Math.max(3,Math.min(40,radius()*2*.42));d.style.width=d.style.height=px+'px';d.style.background=S.tool==='eraser'?'var(--muted)':S.color;d.style.opacity=layerAlpha();}
+function updDot(){updRail();$('#szOut').textContent=S.size;const d=$('#dot'),px=Math.max(3,Math.min(100,radius()*1.1));d.style.width=d.style.height=px+'px';d.style.background=S.tool==='eraser'?'var(--muted)':S.color;d.style.opacity=layerAlpha();}
 const sz=$('#size'),op=$('#opacity'),vol=$('#vol'),stay=$('#stay');
 sz.value=S.size;op.value=S.opacity;vol.value=S.volume;stay.checked=S.stay;$('#smartFill').checked=S.smartFill;$('#opOut').textContent=S.opacity+'%';$('#volOut').textContent=S.volume+'%';
 sz.oninput=()=>{S.size=+sz.value;updDot();saveSettings();};
@@ -723,12 +761,29 @@ function drawPreview(cv,def,col){const W=cv.width,H=cv.height,x=cv.getContext('2
  const t=document.createElement('canvas');t.width=W;t.height=H;const st=makeStroker(t.getContext('2d'),def,col,H*.15),n=48;
  for(let i=0;i<=n;i++){const u=i/n,px=W*.1+u*W*.8,py=H/2+Math.sin(u*2*PI)*H*.2,p=.15+.85*Math.sin(u*PI);i?st.to(px,py,p):st.begin(px,py,p);}st.end();
  x.globalAlpha=def.kind==='line'?def.flow:1;x.globalCompositeOperation=def.layer?'multiply':'source-over';x.drawImage(t,0,0);x.globalAlpha=1;x.globalCompositeOperation='source-over';}
-function renderBrushGrid(){const g=$('#brushGrid'),col=previewColor();g.replaceChildren();
- for(const def of allBrushes()){const tile=el('div','btile'),b=el('button','bsel'),cv=document.createElement('canvas');cv.width=300;cv.height=110;drawPreview(cv,def,col);
-  b.append(cv,el('span',null,def.name));b.setAttribute('aria-pressed',S.brush===def.id&&S.tool==='paint');b.onclick=()=>{S.brush=def.id;setTool('paint');renderBrushGrid();};
+const BICON={"pencil": "<path d=\"M16.5 3.5l4 4L8 20H4v-4z\"/><path d=\"M13.5 6.5l4 4\"/><path d=\"M4 16l4 4\"/>", "crayon": "<path d=\"M15 4l5 5-9.5 9.5H6v-4.5z\"/><path d=\"M12.5 6.5l5 5\"/><path d=\"M9.5 9.5l5 5\"/><path d=\"M6 14l-2.5 6.5L10 18\"/>", "chalk": "<rect x=\"4\" y=\"9\" width=\"16\" height=\"7\" rx=\"2\" transform=\"rotate(-35 12 12.5)\"/><path d=\"M5 20h.01M8 21h.01M3 17h.01\"/>", "marker": "<path d=\"M14.5 3.5l6 6-8.5 8.5H6v-6z\"/><path d=\"M6 18l-2.5 2.5\"/><path d=\"M11 7l6 6\"/>", "highlight": "<path d=\"M9 11l-4.5 4.5V19h3.5L12.5 14.5\"/><path d=\"M9 11l6.5-6.5 4 4L13 15z\"/><path d=\"M14 21h7\"/>", "pen": "<path d=\"M17 3l4 4L9 19l-5 1 1-5z\"/><path d=\"M15 5l4 4\"/>", "soft": "<path d=\"M18.4 2.8a2 2 0 0 1 2.8 2.8L12 14.8 9.2 12z\"/><path d=\"M9 13.2c-2.1 0-3.6 1.5-3.6 3.6 0 1.4-1 2.4-2.4 2.9 3.2 1.2 7.4.6 8.7-2.6\"/>", "water": "<path d=\"M12 3c3.6 4.6 6 7.7 6 11a6 6 0 0 1-12 0c0-3.3 2.4-6.4 6-11z\"/><path d=\"M9 15a3 3 0 0 0 3 3\"/>", "air": "<rect x=\"7\" y=\"9\" width=\"9\" height=\"12\" rx=\"2\"/><path d=\"M9 9V6h5v3\"/><path d=\"M18 5h.01M20 7h.01M18 9h.01M21 4h.01\"/>", "ink": "<path d=\"M12 19l7-7 3 3-7 7z\"/><path d=\"M18 13l-1.5-7.5L3 3l2.5 13.5L13 18z\"/><path d=\"M3 3l7.6 7.6\"/><circle cx=\"11.5\" cy=\"11.5\" r=\"2\"/>", "callig": "<path d=\"M14 4l6 6-8 8-4 1 1-4z\"/><path d=\"M4 20l5-5\"/><path d=\"M12 6l6 6\"/>", "splatter": "<circle cx=\"12\" cy=\"12\" r=\"3.5\"/><circle cx=\"5\" cy=\"7\" r=\"1.5\"/><circle cx=\"19\" cy=\"6\" r=\"1\"/><circle cx=\"18.5\" cy=\"17\" r=\"2\"/><circle cx=\"6\" cy=\"18\" r=\"1\"/><circle cx=\"12\" cy=\"4\" r=\".8\"/>", "sparkle": "<path d=\"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z\"/><path d=\"M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z\"/>", "confetti": "<path d=\"M4 20l4-11 7 7z\"/><path d=\"M14 4l1 2M19 5l-2 1M20 11l-2-.5M11 3v2M17 9l3-3\"/>"};
+const CATS=[['pencil','Pencils'],['marker','Markers'],['brush','Brushes']];
+function catOf(b){return b.cat||(b.kind==='line'?'marker':['grain','square'].includes(b.shape)?'pencil':'brush');}
+function iconFor(b){const d=BICON[b.id]||BICON[{pencil:'pencil',marker:'marker',brush:'soft'}[catOf(b)]];return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';}
+let brushCat=null;
+function renderBrushGrid(){if(!brushCat)brushCat=catOf(curDef()===ERASER?BRUSHES[0]:curDef());
+ $('#brushCats').replaceChildren(...CATS.map(([v,l])=>{const c=el('button','chip',l);c.setAttribute('role','tab');c.setAttribute('aria-selected',v===brushCat);c.setAttribute('aria-pressed',v===brushCat);c.onclick=()=>{brushCat=v;renderBrushGrid();};return c;}));
+ const g=$('#brushGrid');g.replaceChildren();
+ for(const def of allBrushes().filter(b=>catOf(b)===brushCat)){const tile=el('div','btile'),b=el('button','bpick');b.innerHTML=iconFor(def);b.append(el('span',null,def.name));
+  b.setAttribute('aria-pressed',S.brush===def.id&&S.tool==='paint');b.onclick=()=>{S.brush=def.id;setTool('paint');renderBrushGrid();};
   const ed=el('button','bedit');ed.innerHTML=EDIT_SVG;ed.setAttribute('aria-label',(def.custom?'Edit ':'Make a copy of ')+def.name);ed.onclick=()=>openEditor(def);tile.append(b,ed);g.append(tile);}
  const nb=el('button','newbrush');nb.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';nb.append('Create brush');nb.onclick=()=>openEditor(null);g.append(nb);}
-let prevT;function schedulePreviews(){clearTimeout(prevT);prevT=setTimeout(()=>{if(!$('#brushSec').hidden)renderBrushGrid();},250);}
+function updRail(){const sw=document.getElementById('railSw');if(!sw)return;sw.style.background=S.color;
+ const d=curDef();$('#railBrush').innerHTML=iconFor(d===ERASER?(findBrush(S.brush)||BRUSHES[0]):d);
+ const rd=$('#railDot'),px=Math.max(4,Math.min(22,4+S.size*.18));rd.style.width=rd.style.height=px+'px';}
+const PANE_TITLES={color:'Colour',brushes:'Brushes',size:'Size & opacity',settings:'Settings'};
+function openPane(name){const pop=$('#pop');if(!pop.hidden&&pop.dataset.pane===name){closePane();return;}
+ pop.dataset.pane=name;pop.hidden=false;document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==name);$('#popTitle').textContent=PANE_TITLES[name];
+ document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded',b.dataset.pane===name));if(name==='brushes')renderBrushGrid();}
+function closePane(){$('#pop').hidden=true;document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded','false'));}
+document.querySelectorAll('button[data-pane]').forEach(b=>b.onclick=()=>openPane(b.dataset.pane));
+$('#popClose').onclick=closePane;
+function schedulePreviews(){updRail();}
 const SHAPE_OPTS=[['round','Soft round'],['water','Watercolor'],['grain','Grainy'],['square','Chalk'],['flat','Flat nib'],['dots','Splatter'],['star','Stars'],['line','Smooth line']];
 const ROT_OPTS=[['none','None'],['random','Random'],['follow','Follow stroke'],['fixed','Angled']];
 const SOUND_OPTS=[['soft','Soft'],['water','Water'],['grain','Scratchy'],['pen','Pen'],['marker','Marker'],['spray','Spray'],['none','Silent']];
@@ -739,7 +794,7 @@ function setSl(k,v){if(k==='soft')ed.hard=1-v/100;else ed[k]=v/100;}
 function chipRow(box,opts,cur,onPick){box.replaceChildren(...opts.map(([v,l])=>{const c=el('button','chip',l);c.setAttribute('aria-pressed',v===cur);c.onclick=()=>{onPick(v);syncEditor();};return c;}));}
 function syncEditor(){const shape=ed.kind==='line'?'line':ed.shape;
  chipRow($('#edShape'),SHAPE_OPTS,shape,v=>{if(v==='line'){ed.kind='line';ed.shape='round';}else{ed.kind='stamp';ed.shape=v;}});
- chipRow($('#edRot'),ROT_OPTS,ed.rot,v=>ed.rot=v);chipRow($('#edSound'),SOUND_OPTS,ed.sound,v=>ed.sound=v);
+ chipRow($('#edCat'),CATS,catOf(ed),v=>ed.cat=v);chipRow($('#edRot'),ROT_OPTS,ed.rot,v=>ed.rot=v);chipRow($('#edSound'),SOUND_OPTS,ed.sound,v=>ed.sound=v);
  for(const[,k]of SLIDERS){const i=$('#ed-'+k);i.value=getSl(k);i.nextElementSibling.textContent=i.value+'%';}
  $('#edPSize').checked=!!ed.pSize;$('#edPFlow').checked=!!ed.pFlow;$('#edLayer').checked=!!ed.layer;drawPreview($('#edPrev'),ed,previewColor());}
 (function buildSliders(){const box=$('#edSliders');box.append(el('h2',null,'Behaviour'));
@@ -747,12 +802,12 @@ function syncEditor(){const shape=ed.kind==='line'?'line':ed.shape;
   inp.oninput=()=>{setSl(k,+inp.value);out.textContent=inp.value+'%';drawPreview($('#edPrev'),ed,previewColor());};row.append(lab,inp,out);box.append(row);}})();
 $('#edPSize').onchange=e=>{ed.pSize=e.target.checked;syncEditor();};$('#edPFlow').onchange=e=>{ed.pFlow=e.target.checked;syncEditor();};$('#edLayer').onchange=e=>{ed.layer=e.target.checked;syncEditor();};
 function openEditor(def){const base=def||curDef();ed=JSON.parse(JSON.stringify(base===ERASER?BRUSHES[0]:base));edId=def&&def.custom?def.id:null;
- if(!edId)ed.name=def?('My '+def.name).slice(0,24):'My brush';$('#edName').value=ed.name;$('#edDelete').hidden=!edId;$('#edDelete').classList.remove('armed');$('#edDelete').textContent='Delete brush';
+ if(!edId)ed.name=def?('My '+def.name).slice(0,24):'My brush';if(!def)ed.cat=brushCat||'brush';else ed.cat=catOf(def);$('#edName').value=ed.name;$('#edDelete').hidden=!edId;$('#edDelete').classList.remove('armed');$('#edDelete').textContent='Delete brush';
  $('#edTitle').textContent=edId?'Edit brush':'Brush maker';syncEditor();$('#brushEd').hidden=false;}
 $('#edClose').onclick=()=>$('#brushEd').hidden=true;
 $('#edSave').onclick=()=>{ed.name=$('#edName').value.trim()||'My brush';ed.custom=true;
  if(edId){ed.id=edId;S.customBrushes=S.customBrushes.map(b=>b.id===edId?ed:b);}else{ed.id='c'+Date.now().toString(36);S.customBrushes.push(ed);}
- S.brush=ed.id;$('#brushEd').hidden=true;setTool('paint');renderBrushGrid();saveSettings();toast('Saved "'+ed.name+'"');};
+ S.brush=ed.id;brushCat=catOf(ed);$('#brushEd').hidden=true;setTool('paint');renderBrushGrid();saveSettings();toast('Saved "'+ed.name+'"');};
 $('#edDelete').onclick=e=>{const b=e.currentTarget;if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Tap again to delete';return;}
  S.customBrushes=S.customBrushes.filter(x=>x.id!==edId);if(S.brush===edId)S.brush='soft';$('#brushEd').hidden=true;renderBrushGrid();saveSettings();};
 $('#neutrals').replaceChildren(...['#FFFFFF','#E6E6E6','#BDBDBD','#8C8C8C','#5C5C5C','#2E2E2E','#000000'].map(c=>{const b=swatch(c);b.style.borderRadius='8px';return b;}));
