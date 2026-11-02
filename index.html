@@ -80,7 +80,16 @@ button{cursor:pointer}
 .bigsw{width:52px;height:52px;border-radius:50%;border:3px solid var(--panel);box-shadow:0 0 0 1px var(--line),var(--shadow);flex:none}
 .custom{display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--chip);font-weight:600;font-size:14px;position:relative}
 .custom input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
-.hex{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+.current .ibtn{flex:none}
+.stage.dropping{cursor:crosshair}
+.hexwrap{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--chip);font-weight:700;color:var(--muted)}
+.hexwrap input{flex:1;min-width:0;border:0;background:transparent;font-weight:700;font-size:16px;letter-spacing:.06em;font-variant-numeric:tabular-nums;color:var(--ink);text-transform:uppercase;outline:none}
+.hexwrap:focus-within{border-color:var(--accent)}
+.hexwrap.bad{border-color:var(--danger)}
+.wheelwrap{position:relative;width:min(240px,100%);aspect-ratio:1;margin:2px auto 0;touch-action:none;cursor:crosshair}
+.wheelwrap canvas{width:100%;height:100%;display:block}
+.hueknob{width:22px;height:22px;margin:-11px 0 0 -11px}
+.knob{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.3);pointer-events:none}
 .shades{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .shades button,.swatches button,.recent button{aspect-ratio:1;border-radius:50%;border:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);min-width:0;padding:0}
 .shades button{border-radius:8px}
@@ -185,9 +194,10 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
       <h2>Colour</h2>
       <div class="current">
         <div class="bigsw" id="bigSw"></div>
-        <label class="custom">Pick any colour<input type="color" id="picker" aria-label="Pick any colour"></label>
-        <span class="hex" id="hexOut"></span>
+        <label class="hexwrap" for="hexIn"><span aria-hidden="true">#</span><input id="hexIn" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="7" aria-label="Hex colour code"></label>
+        <button class="ibtn" id="dropBtn" aria-pressed="false" aria-label="Pick a colour from your picture" title="Pick a colour from your picture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5l4 4"/><path d="M17.8 2.8a2.3 2.3 0 0 1 3.3 3.3l-2.6 2.6-3.3-3.3z"/><path d="M15.5 8.5L6 18l-3 3"/><path d="M12.8 5.8l5.4 5.4"/><path d="M6 18l-1.5 1.5"/></svg></button>
       </div>
+      <div class="wheelwrap" id="wheelWrap"><canvas id="wheel" width="480" height="480" aria-label="Colour wheel. Drag the ring to choose a colour, then the square to make it lighter, darker or softer."></canvas><div class="knob hueknob" id="hueKnob"></div><div class="knob" id="knob"></div></div>
       <div class="shades" id="shades" aria-label="Shades of this colour"></div>
     </section>
     <section class="sec">
@@ -461,6 +471,7 @@ stage.addEventListener('pointerdown',e=>{
  if(ptrs.size>=2){if(drawing)cancelStroke();tap=null;startGesture();return;}
  if(penSeen&&e.pointerType==='touch'){startGesture();return;}
  const pt=toCanvas(e.clientX,e.clientY);
+ if(dropping){pickAt(pt.x,pt.y);return;}
  if(S.tool==='fill'){tap={x:pt.x,y:pt.y,cx:e.clientX,cy:e.clientY};return;}
  beginStroke(pt.x,pt.y,pressure(e));lastMove={x:e.clientX,y:e.clientY,t:e.timeStamp};});
 stage.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -554,7 +565,7 @@ function setTool(t){S.tool=t;document.querySelectorAll('.tool').forEach(b=>b.set
  $('#hint').textContent=t==='fill'?'Tap a shape to fill it · pinch to zoom':'Draw to colour · pinch to zoom';saveSettings();updDot();}
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 function useColor(c){S.recent=[c,...S.recent.filter(x=>x!==c)].slice(0,8);renderRecent();saveSettings();}
-function setColor(c,fromShade){S.color=c.toUpperCase();$('#bigSw').style.background=S.color;$('#hexOut').textContent=S.color;$('#picker').value=S.color.toLowerCase();
+function setColor(c,fromShade,src){S.color=c.toUpperCase();$('#bigSw').style.background=S.color;if(src!=='hex'){$('#hexIn').value=S.color.slice(1);$('#hexIn').parentElement.classList.remove('bad');}syncWheel(src);
  if(!fromShade)renderShades();markSel();if(S.tool==='eraser')setTool('brush');updDot();saveSettings();}
 function markSel(){document.querySelectorAll('.swatches button,.shades button,.recent button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===S.color));}
 function swatch(c){const b=el('button');b.style.background=c;b.dataset.c=c.toUpperCase();b.setAttribute('aria-label','Colour '+c);b.onclick=()=>setColor(c,b.parentElement.id==='shades');return b;}
@@ -562,8 +573,50 @@ function renderShades(){const[h,s]=rgbHsl(...hexRgb(S.color));const g=$('#shades
 function renderPalette(){const ch=$('#palChips');ch.replaceChildren(...PALETTES.map(([n],i)=>{const b=el('button','chip',n);b.setAttribute('aria-pressed',i===S.palette);b.onclick=()=>{S.palette=i;renderPalette();saveSettings();};return b;}));
  $('#swatches').replaceChildren(...PALETTES[S.palette][1].map(swatch));markSel();}
 function renderRecent(){$('#recentSec').hidden=!S.recent.length;$('#recent').replaceChildren(...S.recent.map(swatch));markSel();}
-$('#picker').addEventListener('input',e=>setColor(e.target.value));
-$('#picker').addEventListener('change',e=>useColor(e.target.value.toUpperCase()));
+/* eyedropper */
+let dropping=false;
+function setDropping(on){dropping=on;$('#dropBtn').setAttribute('aria-pressed',on);stage.classList.toggle('dropping',on);const h=$('#hint');h.hidden=false;
+ h.textContent=on?'Tap your picture to pick a colour':(S.tool==='fill'?'Tap a shape to fill it · pinch to zoom':'Draw to colour · pinch to zoom');}
+function pickAt(x,y){x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=N||y>=N){return;}finishFill();
+ const c=document.createElement('canvas');c.width=c.height=1;const k=c.getContext('2d');k.fillStyle='#fff';k.fillRect(0,0,1,1);
+ k.drawImage(colorC,x,y,1,1,0,0,1,1);k.globalCompositeOperation='multiply';k.drawImage(lineC,x,y,1,1,0,0,1,1);
+ const d=k.getImageData(0,0,1,1).data,hx=rgbHex(d[0],d[1],d[2]);setDropping(false);setColor(hx);useColor(hx);toast('Picked '+hx);}
+$('#dropBtn').onclick=()=>setDropping(!dropping);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dropping)setDropping(false);});
+/* colour wheel (hue ring + saturation/brightness square) + hex */
+const wheel=$('#wheel'),wx=wheel.getContext('2d'),knob=$('#knob'),hueKnob=$('#hueKnob');let HSV=[0,0,1],drawnHue=-1,ringImg=null;
+const WW=wheel.width,WR=WW/2,RO=WR-2,RI=WR*.8,SQ=(RI-14)/Math.SQRT2,S0=WR-SQ,SW=SQ*2;
+function hsvRgb(h,s,v){const f=n=>{const k=(n+h*6)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1));};return[f(5)*255,f(3)*255,f(1)*255];}
+function hsvHex(h,s,v){return rgbHex(...hsvRgb(h,s,v));}
+function hexHsv(hx){const[r,g,b]=hexRgb(hx).map(v=>v/255),mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h/=6;if(h<0)h+=1;}return[h,mx?d/mx:0,mx];}
+function buildRing(){const img=wx.createImageData(WW,WW),d=img.data;
+ for(let y=0;y<WW;y++)for(let x=0;x<WW;x++){const dx=x-WR+.5,dy=y-WR+.5,r=Math.hypot(dx,dy);const a=Math.min(RO-r,r-RI)+.5;if(a<=0)continue;
+  const[cr,cg,cb]=hsvRgb((Math.atan2(dy,dx)/(2*Math.PI)+1)%1,1,1),o=(y*WW+x)*4;d[o]=cr;d[o+1]=cg;d[o+2]=cb;d[o+3]=Math.min(255,a*255);}
+ ringImg=img;}
+function drawWheel(){if(!ringImg)buildRing();wx.putImageData(ringImg,0,0);
+ wx.fillStyle=hsvHex(HSV[0],1,1);wx.fillRect(S0,S0,SW,SW);
+ let g=wx.createLinearGradient(S0,0,S0+SW,0);g.addColorStop(0,'#fff');g.addColorStop(1,'rgba(255,255,255,0)');wx.fillStyle=g;wx.fillRect(S0,S0,SW,SW);
+ g=wx.createLinearGradient(0,S0,0,S0+SW);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'#000');wx.fillStyle=g;wx.fillRect(S0,S0,SW,SW);
+ drawnHue=HSV[0];}
+function placeKnob(){const a=HSV[0]*2*Math.PI,rr=(RO+RI)/2/WW*100;hueKnob.style.left=(50+Math.cos(a)*rr)+'%';hueKnob.style.top=(50+Math.sin(a)*rr)+'%';hueKnob.style.background=hsvHex(HSV[0],1,1);
+ knob.style.left=((S0+HSV[1]*SW)/WW*100)+'%';knob.style.top=((S0+(1-HSV[2])*SW)/WW*100)+'%';knob.style.background=S.color;}
+function syncWheel(src){if(src!=='wheel'){const n=hexHsv(S.color);if(n[1]<.001||n[2]<.001)n[0]=HSV[0];if(n[2]<.001)n[1]=HSV[1];HSV=n;}
+ if(Math.abs(drawnHue-HSV[0])>.0005)drawWheel();placeKnob();}
+const ww=$('#wheelWrap');let wheelMode=null;
+function wheelPick(e){const r=wheel.getBoundingClientRect(),k=WW/r.width,x=(e.clientX-r.left)*k,y=(e.clientY-r.top)*k;
+ if(!wheelMode){const d=Math.hypot(x-WR,y-WR);wheelMode=d>=RI-8?'hue':(x>=S0-10&&x<=S0+SW+10&&y>=S0-10&&y<=S0+SW+10)?'sv':null;if(!wheelMode)return;}
+ if(wheelMode==='hue'){HSV[0]=(Math.atan2(y-WR,x-WR)/(2*Math.PI)+1)%1;if(HSV[1]<.05&&HSV[2]>.95){HSV[1]=.75;HSV[2]=.9;}drawWheel();}
+ else{HSV[1]=Math.max(0,Math.min(1,(x-S0)/SW));HSV[2]=Math.max(0,Math.min(1,1-(y-S0)/SW));}
+ setColor(hsvHex(...HSV),false,'wheel');}
+ww.addEventListener('pointerdown',e=>{wheelMode=null;wheelPick(e);if(wheelMode){try{ww.setPointerCapture(e.pointerId);}catch(_){}}});
+ww.addEventListener('pointermove',e=>{if(wheelMode)wheelPick(e);});
+const wheelEnd=()=>{if(wheelMode){wheelMode=null;useColor(S.color);}};
+ww.addEventListener('pointerup',wheelEnd);ww.addEventListener('pointercancel',wheelEnd);
+const hexIn=$('#hexIn');
+function parseHex(v){v=v.trim().replace(/^#/,'');if(/^[0-9a-f]{3}$/i.test(v))v=v.split('').map(c=>c+c).join('');return /^[0-9a-f]{6}$/i.test(v)?'#'+v.toUpperCase():null;}
+hexIn.addEventListener('input',()=>{const c=parseHex(hexIn.value);hexIn.parentElement.classList.toggle('bad',!c&&hexIn.value.replace('#','').length>=6);if(c&&hexIn.value.replace('#','').length>=6)setColor(c,false,'hex');});
+hexIn.addEventListener('change',()=>{const c=parseHex(hexIn.value);if(c){setColor(c);useColor(c);}else{hexIn.value=S.color.slice(1);hexIn.parentElement.classList.remove('bad');toast('Type a 6-character code like E07A93');}});
+hexIn.addEventListener('keydown',e=>{if(e.key==='Enter')hexIn.blur();});
 function updDot(){const d=$('#dot'),px=Math.max(3,Math.min(40,radius()*2*.42));d.style.width=d.style.height=px+'px';d.style.background=S.tool==='eraser'?'var(--muted)':S.color;d.style.opacity=layerAlpha();}
 const sz=$('#size'),op=$('#opacity'),vol=$('#vol'),stay=$('#stay');
 sz.value=S.size;op.value=S.opacity;vol.value=S.volume;stay.checked=S.stay;$('#opOut').textContent=S.opacity+'%';$('#volOut').textContent=S.volume+'%';
