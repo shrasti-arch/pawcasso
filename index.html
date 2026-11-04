@@ -238,6 +238,11 @@ html.paw-on,html.paw-on *{cursor:none!important}
 .irow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .irow button{height:36px;border:0;border-radius:9px;padding:0;min-width:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .irow button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--chip),0 0 0 4px var(--accent)}
+
+.pophead{cursor:grab;touch-action:none;margin:0 -14px;padding:12px 14px 6px 10px;gap:6px}
+.pophead .grip{width:18px;height:18px;color:var(--muted);flex:none}
+.pophead h2{flex:1;min-width:0}
+.pop.floating{position:fixed;justify-self:auto;align-self:auto;margin:0;z-index:14}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -281,7 +286,7 @@ html.paw-on,html.paw-on *{cursor:none!important}
   </main>
 
   <aside class="pop" id="pop" hidden aria-labelledby="popTitle">
-    <div class="pophead"><h2 id="popTitle">Colour</h2><button class="ibtn" id="popClose" aria-label="Close panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="pophead" title="Drag to move. Double-tap to put it back."><svg class="grip" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg><h2 id="popTitle">Colour</h2><button class="ibtn" id="popClose" aria-label="Close panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 
     <div class="pane" data-in="settings" hidden>
       <h3 class="sub">Size &amp; opacity</h3>
@@ -646,7 +651,7 @@ stage.addEventListener('pointerdown',e=>{
  if(e.pointerType==='pen'){penSeen=true;penActive=true;if(gesture){gesture=null;for(const[k,v]of ptrs)if(v.t==='touch')ptrs.delete(k);}}
  if(touch&&penSeen){if(penActive||Math.max(e.width||0,e.height||0)>45)return;
   try{stage.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,t:'touch'});if(gestPts().length>=2)startGesture();return;}
- try{stage.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,t:e.pointerType});Snd.ensure();closePane();$('#hint').hidden=true;
+ try{stage.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,t:e.pointerType});Snd.ensure();$('#hint').hidden=true;
  if(!penSeen&&ptrs.size>=2){if(drawing)cancelStroke();tap=null;startGesture();return;}
  if(drawing)return;
  const pt=toCanvas(e.clientX,e.clientY);
@@ -782,7 +787,7 @@ function renderPalette(){const ch=$('#palChips');ch.replaceChildren(...PALETTES.
 function renderRecent(){$('#recentSec').hidden=!S.recent.length;$('#recent').replaceChildren(...S.recent.map(swatch));markSel();renderFpal();}
 /* eyedropper */
 let dropping=false;
-function setDropping(on){dropping=on;if(on)closePane();$('#dropBtn').setAttribute('aria-pressed',on);stage.classList.toggle('dropping',on);const h=$('#hint');h.hidden=false;
+function setDropping(on){dropping=on;$('#dropBtn').setAttribute('aria-pressed',on);stage.classList.toggle('dropping',on);const h=$('#hint');h.hidden=false;
  h.textContent=on?'Tap your picture to pick a colour':(S.tool==='fill'?'Tap a shape to fill it · pinch to zoom':'Draw to colour · pinch to zoom');}
 function pickAt(x,y){x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=N||y>=N){return;}finishFill();
  const c=document.createElement('canvas');c.width=c.height=1;const k=c.getContext('2d');k.fillStyle='#fff';k.fillRect(0,0,1,1);
@@ -863,7 +868,7 @@ function updRail(){const sw=document.getElementById('railSw');if(!sw)return;sw.s
 const PANE_TITLES={color:'Colour',brushes:'Brushes',settings:'Settings'};
 function openPane(name){const pop=$('#pop');if(!pop.hidden&&pop.dataset.pane===name){closePane();return;}
  pop.dataset.pane=name;pop.hidden=false;document.querySelectorAll('.pane').forEach(p=>p.hidden=!p.dataset.in.split(' ').includes(name));document.querySelectorAll('[data-only]').forEach(h=>h.hidden=h.dataset.only!==name);pop.scrollTop=0;$('#popTitle').textContent=PANE_TITLES[name];
- document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded',b.dataset.pane===name));if(name==='brushes')renderBrushGrid();if(name==='color'||name==='settings')renderIdeas();}
+ document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded',b.dataset.pane===name));placePop();if(name==='brushes')renderBrushGrid();if(name==='color'||name==='settings')renderIdeas();}
 function closePane(){$('#pop').hidden=true;document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded','false'));}
 document.querySelectorAll('button[data-pane]').forEach(b=>b.onclick=()=>{if(b.dataset.tool)setTool(b.dataset.tool);openPane(b.dataset.pane);});
 $('#popClose').onclick=closePane;
@@ -938,6 +943,19 @@ $('#ideaNew').onclick=()=>{ideaSeed=(Date.now()%2147483646)+1;renderIdeas();};
 if(S.myPal&&Array.isArray(S.myPal.colors))PALETTES.push(Object.assign([S.myPal.name,S.myPal.colors],{idea:true}));
 if(!(S.palette>=0&&S.palette<PALETTES.length))S.palette=0;
 ideaSeed=(Date.now()%2147483646)+1;
+/* ---------- movable panel ---------- */
+const popEl=$('#pop'),popHead=popEl.querySelector('.pophead');
+function placePop(){if(!S.popPos){popEl.classList.remove('floating');popEl.style.left=popEl.style.top=popEl.style.width=popEl.style.maxHeight='';return;}
+ popEl.classList.add('floating');const w=Math.min(340,innerWidth-16);popEl.style.width=w+'px';
+ const x=Math.max(8,Math.min(innerWidth-w-8,S.popPos.x)),y=Math.max(8,Math.min(innerHeight-140,S.popPos.y));
+ popEl.style.left=x+'px';popEl.style.top=y+'px';popEl.style.maxHeight=(innerHeight-y-8)+'px';S.popPos={x,y};}
+let popDrag=null;
+popHead.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=popEl.getBoundingClientRect();popDrag={dx:e.clientX-r.left,dy:e.clientY-r.top};try{popHead.setPointerCapture(e.pointerId);}catch(_){}});
+popHead.addEventListener('pointermove',e=>{if(!popDrag)return;S.popPos={x:e.clientX-popDrag.dx,y:e.clientY-popDrag.dy};placePop();});
+const popEnd=()=>{if(popDrag){popDrag=null;saveSettings();}};
+popHead.addEventListener('pointerup',popEnd);popHead.addEventListener('pointercancel',popEnd);
+popHead.addEventListener('dblclick',e=>{if(e.target.closest('button'))return;S.popPos=null;placePop();saveSettings();});
+addEventListener('resize',()=>{if(!popEl.hidden)placePop();});
 /* ---------- quick palette ---------- */
 const fpal=$('#fpal'),fpHead=$('#fpHead');
 function renderFpal(){if(!fpal||fpal.hidden)return;$('#fpName').textContent=PALETTES[S.palette][0];
