@@ -187,6 +187,9 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
 .sizeprev .dot{background:var(--ink)}
 .pop .shades button{aspect-ratio:auto;height:34px}
 .pop .swatches{grid-template-columns:repeat(auto-fill,minmax(42px,1fr))}
+.galhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.galbtns{display:flex;gap:8px}
+#backupNote:empty{display:none}
 .resetv{position:absolute;right:12px;bottom:12px;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-weight:600;font-size:13px;box-shadow:var(--shadow)}
 .resetv svg{width:16px;height:16px}
 @media (max-width:860px),(orientation:portrait) and (max-width:1100px){
@@ -199,6 +202,42 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
   .actions .lbl{display:none}
   .status{display:none}
 }
+
+/* quick palette */
+.fpal{position:fixed;z-index:15;width:228px;box-sizing:border-box;background:var(--panel);border-radius:16px;box-shadow:var(--shadow),0 0 0 1px var(--line);padding:0 10px 10px;display:flex;flex-direction:column;gap:8px}
+.fphead{display:flex;align-items:center;gap:2px;height:42px;margin:0 -10px;padding:0 4px 0 8px;border-bottom:1px solid var(--line);cursor:grab;touch-action:none}
+.fphead .grip{width:16px;height:16px;color:var(--muted);flex:none;margin-right:2px}
+.fphead span{flex:1;min-width:0;text-align:center;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fpbtn{width:34px;height:34px;border:0;border-radius:10px;background:transparent;color:var(--ink);display:grid;place-items:center;padding:0;flex:none}
+.fpbtn:hover{background:var(--chip)}
+.fpbtn svg{width:17px;height:17px}
+.fpcur{display:flex;align-items:center;gap:8px}
+.fpsw{flex:1;height:30px;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.fpgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.fpgrid button{aspect-ratio:1;border-radius:50%;border:0;padding:0;min-width:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
+.fpgrid button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--accent)}
+.fplbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:2px}
+.tool[aria-pressed="true"][data-float]{background:var(--accent-soft);color:var(--accent)}
+/* paw cursor */
+.stage{cursor:crosshair}
+.pawcur{position:fixed;left:0;top:0;z-index:60;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.28))}
+.pawcur svg{position:absolute;display:none}
+.pawcur .pc-paw{left:-20px;top:-20px}
+.pawcur .pc-brush{left:-3px;top:-43px}
+.pawcur[data-kind="paw"] .pc-paw,.pawcur[data-kind="brush"] .pc-brush{display:block}
+html.paw-on,html.paw-on *{cursor:none!important}
+
+.ideahead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ideahead .chip{display:inline-flex;align-items:center;gap:6px}
+.ideas{display:flex;flex-direction:column;gap:10px}
+.idea{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--chip)}
+.idea .itop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.idea .iname{font-size:13px;font-weight:700}
+.idea .iuse{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;min-height:32px}
+.idea .iuse:hover{border-color:var(--accent);color:var(--accent)}
+.irow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.irow button{height:36px;border:0;border-radius:9px;padding:0;min-width:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.irow button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--chip),0 0 0 4px var(--accent)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -227,6 +266,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
     <button class="tool" data-tool="eraser" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h13"/><path d="M3.6 13.4l9-9a2 2 0 0 1 2.8 0l4.2 4.2a2 2 0 0 1 0 2.8L12 19H7.6z"/><path d="M8.2 8.8l7 7"/></svg>Eraser</button>
     <div class="sep" role="presentation"></div>
     <button class="tool" data-pane="color" aria-expanded="false" aria-controls="pop"><span class="sw" id="railSw"></span>Colour</button>
+    <button class="tool" id="fpalBtn" data-float aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2.2-1 2.2-2.1 0-.6-.2-1-.5-1.4-.3-.4-.5-.8-.5-1.4 0-1.2 1-2.1 2.2-2.1H17a4 4 0 0 0 4-4C21 6.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="10.5" cy="7" r="1.2" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1.2" fill="currentColor"/></svg>Palette</button>
     <button class="tool" data-pane="settings" aria-expanded="false" aria-controls="pop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Settings</button>
   </nav>
 
@@ -262,6 +302,12 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
       <div class="shades" id="neutrals" aria-label="White, greys and black"></div>
       <section class="sec"><h3 class="sub">Palettes</h3><div class="chips" id="palChips"></div><div class="swatches" id="swatches"></div></section>
       <section class="sec" id="recentSec" hidden><h3 class="sub">Recently used</h3><div class="recent" id="recent"></div></section>
+      <section class="sec ideasec">
+        <div class="ideahead"><h3 class="sub">Colour ideas</h3><button class="chip" id="ideaNew"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>New ideas</button></div>
+        <div class="chips" id="ideaTabs"></div>
+        <p class="note" id="ideaBase"></p>
+        <div class="ideas" id="ideaList"></div>
+      </section>
     </div>
 
     <div class="pane" data-in="brushes" hidden>
@@ -280,11 +326,26 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
   </aside>
 </div>
 
+<div class="fpal" id="fpal" hidden role="dialog" aria-label="Quick palette">
+  <div class="fphead" id="fpHead" title="Drag to move">
+    <svg class="grip" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>
+    <button class="fpbtn" id="fpPrev" aria-label="Previous palette"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <span id="fpName"></span>
+    <button class="fpbtn" id="fpNext" aria-label="Next palette"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <button class="fpbtn" id="fpClose" aria-label="Close quick palette"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="fpcur"><span class="fpsw" id="fpSw"></span><button class="fpbtn" id="fpDrop" aria-label="Pick a colour from your picture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5l4 4"/><path d="M17.8 2.8a2.3 2.3 0 0 1 3.3 3.3l-2.6 2.6-3.3-3.3z"/><path d="M15.5 8.5L6 18l-3 3"/><path d="M12.8 5.8l5.4 5.4"/></svg></button></div>
+  <div class="fpgrid" id="fpSwatches"></div>
+  <div class="fpgrid" id="fpNeutrals"></div>
+  <div class="fplbl" id="fpRecentLbl">Recent</div>
+  <div class="fpgrid" id="fpRecent"></div>
+</div>
+<div class="pawcur" id="pawCur" hidden aria-hidden="true"><svg class="pc-paw" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><g fill="#F6EAD7" stroke="#2B2B2E" stroke-width="1.6"><circle cx="9.5" cy="16" r="4.2"/><circle cx="16" cy="9.5" r="4.4"/><circle cx="24" cy="9.5" r="4.4"/><circle cx="30.5" cy="16" r="4.2"/><path d="M20 18.5c5.5 0 10 4.6 10 9.2 0 3.8-3 5.8-6 5.8-1.6 0-2.6-.8-4-.8s-2.4.8-4 .8c-3 0-6-2-6-5.8 0-4.6 4.5-9.2 10-9.2z"/></g><g fill="#F2A7B8"><circle cx="9.5" cy="16.4" r="1.9"/><circle cx="16" cy="9.9" r="2"/><circle cx="24" cy="9.9" r="2"/><circle cx="30.5" cy="16.4" r="1.9"/><ellipse cx="20" cy="27.5" rx="5" ry="3.6"/></g></svg><svg class="pc-brush" width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><path d="M18 28L42 4" stroke="#2B2B2E" stroke-width="6.5" stroke-linecap="round"/><path d="M18 28L42 4" stroke="#A86F47" stroke-width="4" stroke-linecap="round"/><path d="M12.5 33.5l6-6" stroke="#2B2B2E" stroke-width="7" stroke-linecap="round"/><path d="M12.5 33.5l6-6" stroke="#C9CDD3" stroke-width="4.6" stroke-linecap="round"/><path d="M10 30l6 6c-2.6 4.6-7.4 7-13 7 0-5.6 2.4-10.4 7-13z" fill="var(--pawtip,#D9668A)" stroke="#2B2B2E" stroke-width="1.6" stroke-linejoin="round"/><g fill="#F6EAD7" stroke="#2B2B2E" stroke-width="1.6"><circle cx="23.5" cy="16" r="3.3"/><circle cx="26.5" cy="11.2" r="3.4"/><circle cx="31.8" cy="9.6" r="3.3"/><path d="M30 14.5c4.6 0 8 3.4 8 7.2 0 3-2.3 4.6-4.7 4.6-1.3 0-2-.6-3.3-.6s-2 .6-3.3.6c-2.4 0-4.7-1.6-4.7-4.6 0-3.8 3.4-7.2 8-7.2z"/></g><g fill="#F2A7B8"><circle cx="26.5" cy="11.5" r="1.5"/><circle cx="31.8" cy="9.9" r="1.5"/><ellipse cx="30" cy="21.6" rx="3.8" ry="2.7"/></g></svg></div>
 <div class="sheet" id="gallery" hidden role="dialog" aria-modal="true" aria-labelledby="galTitle">
   <div class="card">
     <div class="cardhead"><h3 id="galTitle">Your gallery</h3><button class="ibtn" id="galClose" aria-label="Close gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <section class="sec"><h2>Start a new page</h2><div class="grid" id="tplGrid"></div></section>
-    <section class="sec"><h2>Saved artworks</h2><div class="grid" id="artGrid"></div><p class="note">Artworks are kept in this browser on this tablet. Tap the download arrow on any artwork to keep a copy on your device.</p></section>
+    <section class="sec"><div class="galhead"><h2>Saved artworks</h2><div class="galbtns"><button class="ibtn" id="backupBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="lbl">Back up all</span></button><button class="ibtn" id="restoreBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M5 3h14"/></svg><span class="lbl">Restore</span></button></div></div><p class="note" id="backupNote"></p><div class="grid" id="artGrid"></div><p class="note">Artworks are kept in this browser on this tablet. Tap the download arrow on any artwork to keep a copy on your device.</p></section>
   </div>
 </div>
 
@@ -317,6 +378,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
   </div>
 </div>
 <input type="file" id="fileIn" accept="image/*" hidden>
+<input type="file" id="backupIn" hidden>
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script>
@@ -628,10 +690,10 @@ $('#docName').addEventListener('change',e=>{if(!doc)return;doc.name=e.target.val
 
 /* ---------- save & download ---------- */
 let dl=null;(async()=>{try{if(window.claude&&window.claude.use)dl=await window.claude.use('downloads');}catch(e){dl=null;}})();
-async function downloadBlob(blob,name){const fn=(name||'artwork').replace(/[^\w\- ]+/g,'').trim()||'artwork';
- if(dl){try{await dl.save({filename:fn+'.png',data:blob});toast('Downloaded');}catch(e){if(e&&e.code==='declined')return;toast(e&&e.code==='rate_limited'?'One moment, then try again':'Downloading isn’t available here');}return;}
+async function downloadBlob(blob,name,ext){ext=ext||'png';const fn=(name||'artwork').replace(/[^\w\- ]+/g,'').trim()||'artwork';
+ if(dl){try{await dl.save({filename:fn+'.'+ext,data:blob});toast('Downloaded');}catch(e){if(e&&e.code==='declined')return;toast(e&&e.code==='rate_limited'?'One moment, then try again':'Downloading isn’t available here');}return;}
  if(window.claude&&window.claude.use){toast('Downloading isn’t available here');return;}
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn+'.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Saved to Downloads');}
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn+'.'+ext;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Saved to Downloads');}
 async function downloadArt(rec){try{const[l,c]=await Promise.all([createImageBitmap(rec.line),createImageBitmap(rec.color)]);const cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
  x.fillStyle='#fff';x.fillRect(0,0,N,N);x.drawImage(c,0,0);x.globalCompositeOperation='multiply';x.drawImage(l,0,0);await downloadBlob(await toBlob(cv),rec.name);}catch(e){toast('That artwork couldn’t be downloaded');}}
 $('#saveBtn').onclick=async()=>{finishFill();if(await saveNow())toast('Saved to your gallery');};
@@ -639,6 +701,26 @@ const fsBtn=$('#fsBtn');
 if(matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches)fsBtn.hidden=true;
 fsBtn.onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(e){toast('Full screen isn’t available here. The installed app already opens full screen.');}};
 document.addEventListener('fullscreenchange',()=>{fsBtn.setAttribute('aria-pressed',!!document.fullscreenElement);setTimeout(fit,120);});
+
+/* ---------- backup & restore ---------- */
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});}catch(e){}
+const blobToData=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(b);});
+function dataToBlob(d){const i=d.indexOf(','),mime=(d.slice(0,i).match(/data:([^;]+)/)||[])[1]||'image/png',bin=atob(d.slice(i+1)),u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return new Blob([u],{type:mime});}
+function backupNote(n){const t=+lsGet('sw-backup')||0,el=$('#backupNote');if(!n){el.textContent='';return;}
+ const days=t?Math.floor((Date.now()-t)/864e5):null;
+ el.textContent=t?('Last backup: '+(days===0?'today':days===1?'yesterday':days+' days ago')+'. ')+'A backup file keeps every artwork editable, even if this tablet’s storage is cleared.':'You haven’t made a backup yet. Tap Back up all to keep a copy of every artwork as one file you can restore later.';}
+$('#backupBtn').onclick=async()=>{await saveNow();let items=[];try{items=await dbAll();}catch(e){}if(!items.length){toast('Nothing to back up yet');return;}
+ status('Preparing backup…');const arts=[];for(const it of items)arts.push({id:it.id,name:it.name,created:it.created,updated:it.updated,thumb:it.thumb,line:await blobToData(it.line),color:await blobToData(it.color)});
+ const d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+ await downloadBlob(new Blob([JSON.stringify({app:'pawcasso',v:1,saved:Date.now(),arts})],{type:'application/json'}),'Pawcasso backup '+stamp,'json');
+ lsSet('sw-backup',String(Date.now()));status('Saved');backupNote(items.length);};
+$('#restoreBtn').onclick=()=>$('#backupIn').click();
+$('#backupIn').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+ try{const j=JSON.parse(await f.text());if(j.app!=='pawcasso'||!Array.isArray(j.arts))throw 0;let n=0;
+  for(const a of j.arts){let ex=null;try{ex=await dbGet(a.id);}catch(_){}if(ex&&ex.updated>=a.updated)continue;
+   await dbPut({id:a.id,name:a.name,created:a.created,updated:a.updated,thumb:a.thumb,line:dataToBlob(a.line),color:dataToBlob(a.color)});n++;}
+  toast(n?('Restored '+n+' artwork'+(n>1?'s':'')):'Everything in that backup is already here');renderArts();}
+ catch(err){toast('That file isn’t a Pawcasso backup');}});
 
 /* ---------- import ---------- */
 let pendingImg=null;
@@ -670,7 +752,7 @@ function renderTemplates(){const g=$('#tplGrid');g.replaceChildren();
   b.append(c);b.setAttribute('aria-label','Start '+t.name);b.onclick=()=>{$('#gallery').hidden=true;startTemplate(t);};const meta=el('div','meta');meta.append(el('span','name',t.name));tile.append(b,meta);g.append(tile);}
  const tile=el('div','tile'),b=el('button','importtile');b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>';b.append('Import a picture');b.onclick=()=>$('#fileIn').click();tile.append(b);g.append(tile);}
 async function renderArts(){const g=$('#artGrid');g.replaceChildren();let items=[];try{items=await dbAll();}catch(e){}
- items.sort((a,b)=>b.updated-a.updated);if(!items.length){g.append(el('p','empty','Nothing saved yet. Your artworks appear here as you colour.'));return;}
+ items.sort((a,b)=>b.updated-a.updated);backupNote(items.length);if(!items.length){g.append(el('p','empty','Nothing saved yet. Your artworks appear here as you colour.'));return;}
  for(const it of items){const tile=el('div','tile'),b=el('button','open'),img=el('img');img.src=it.thumb;img.alt=it.name;b.append(img);b.setAttribute('aria-label','Open '+it.name);
   b.onclick=async()=>{await saveNow();$('#gallery').hidden=true;try{await openArt(it);}catch(e){toast('That artwork couldn’t be opened');}};
   const meta=el('div','meta'),txt=el('div');txt.style.minWidth='0';txt.append(el('div','name',it.name),el('div','date',new Date(it.updated).toLocaleDateString(undefined,{day:'numeric',month:'short'})));
@@ -692,12 +774,12 @@ document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.data
 function useColor(c){S.recent=[c,...S.recent.filter(x=>x!==c)].slice(0,8);renderRecent();saveSettings();}
 function setColor(c,fromShade,src){S.color=c.toUpperCase();$('#bigSw').style.background=S.color;if(src!=='hex'){$('#hexIn').value=S.color.slice(1);$('#hexIn').parentElement.classList.remove('bad');}syncWheel(src);
  if(!fromShade)renderShades();markSel();if(S.tool==='eraser')setTool('paint');updDot();schedulePreviews();saveSettings();}
-function markSel(){document.querySelectorAll('.swatches button,.shades button,.recent button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===S.color));}
+function markSel(){document.querySelectorAll('.swatches button,.shades button,.recent button,.fpgrid button,.ideas .isw').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===S.color));}
 function swatch(c){const b=el('button');b.style.background=c;b.dataset.c=c.toUpperCase();b.setAttribute('aria-label','Colour '+c);b.onclick=()=>setColor(c,b.parentElement.id==='shades');return b;}
 function renderShades(){const[h,s]=rgbHsl(...hexRgb(S.color));const g=$('#shades');g.replaceChildren(...[.18,.3,.42,.54,.66,.78,.9].map(l=>swatch(hslHex(h,s,l))));markSel();}
 function renderPalette(){const ch=$('#palChips');ch.replaceChildren(...PALETTES.map(([n],i)=>{const b=el('button','chip',n);b.setAttribute('aria-pressed',i===S.palette);b.onclick=()=>{S.palette=i;renderPalette();saveSettings();};return b;}));
- $('#swatches').replaceChildren(...PALETTES[S.palette][1].map(swatch));markSel();}
-function renderRecent(){$('#recentSec').hidden=!S.recent.length;$('#recent').replaceChildren(...S.recent.map(swatch));markSel();}
+ $('#swatches').replaceChildren(...PALETTES[S.palette][1].map(swatch));markSel();renderFpal();}
+function renderRecent(){$('#recentSec').hidden=!S.recent.length;$('#recent').replaceChildren(...S.recent.map(swatch));markSel();renderFpal();}
 /* eyedropper */
 let dropping=false;
 function setDropping(on){dropping=on;if(on)closePane();$('#dropBtn').setAttribute('aria-pressed',on);stage.classList.toggle('dropping',on);const h=$('#hint');h.hidden=false;
@@ -775,13 +857,13 @@ function renderBrushGrid(){if(!brushCat)brushCat=catOf(curDef()===ERASER?BRUSHES
   b.setAttribute('aria-pressed',S.brush===def.id&&S.tool==='paint');b.onclick=()=>{S.brush=def.id;setTool('paint');renderBrushGrid();};
   const ed=el('button','bedit');ed.innerHTML=EDIT_SVG;ed.setAttribute('aria-label',(def.custom?'Edit ':'Make a copy of ')+def.name);ed.onclick=()=>openEditor(def);tile.append(b,ed);g.append(tile);}
  const nb=el('button','newbrush');nb.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';nb.append('Create brush');nb.onclick=()=>openEditor(null);g.append(nb);}
-function updRail(){const sw=document.getElementById('railSw');if(!sw)return;sw.style.background=S.color;
+function updRail(){const sw=document.getElementById('railSw');if(!sw)return;sw.style.background=S.color;$('#fpSw').style.background=S.color;$('#pawCur').style.setProperty('--pawtip',S.color);
  const d=curDef();$('#railBrush').innerHTML=iconFor(d===ERASER?(findBrush(S.brush)||BRUSHES[0]):d);
  }
 const PANE_TITLES={color:'Colour',brushes:'Brushes',settings:'Settings'};
 function openPane(name){const pop=$('#pop');if(!pop.hidden&&pop.dataset.pane===name){closePane();return;}
  pop.dataset.pane=name;pop.hidden=false;document.querySelectorAll('.pane').forEach(p=>p.hidden=!p.dataset.in.split(' ').includes(name));document.querySelectorAll('[data-only]').forEach(h=>h.hidden=h.dataset.only!==name);pop.scrollTop=0;$('#popTitle').textContent=PANE_TITLES[name];
- document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded',b.dataset.pane===name));if(name==='brushes')renderBrushGrid();}
+ document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded',b.dataset.pane===name));if(name==='brushes')renderBrushGrid();if(name==='color'||name==='settings')renderIdeas();}
 function closePane(){$('#pop').hidden=true;document.querySelectorAll('button[data-pane]').forEach(b=>b.setAttribute('aria-expanded','false'));}
 document.querySelectorAll('button[data-pane]').forEach(b=>b.onclick=()=>{if(b.dataset.tool)setTool(b.dataset.tool);openPane(b.dataset.pane);});
 $('#popClose').onclick=closePane;
@@ -813,7 +895,84 @@ $('#edSave').onclick=()=>{ed.name=$('#edName').value.trim()||'My brush';ed.custo
 $('#edDelete').onclick=e=>{const b=e.currentTarget;if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Tap again to delete';return;}
  S.customBrushes=S.customBrushes.filter(x=>x.id!==edId);if(S.brush===edId)S.brush='soft';$('#brushEd').hidden=true;renderBrushGrid();saveSettings();};
 $('#neutrals').replaceChildren(...['#FFFFFF','#E6E6E6','#BDBDBD','#8C8C8C','#5C5C5C','#2E2E2E','#000000'].map(c=>{const b=swatch(c);b.style.borderRadius='8px';return b;}));
-renderBrushGrid();setTool(S.tool);setColor(S.color);renderPalette();renderRecent();fit();
+/* ---------- colour ideas ---------- */
+let ideaMode='harmony',ideaSeed=1;
+function rnd(){ideaSeed=(ideaSeed*16807)%2147483647;return(ideaSeed-1)/2147483646;}
+const between=(a,b)=>a+(b-a)*rnd();
+const wrapH=h=>((h%1)+1)%1;
+const clamp01=v=>Math.max(0,Math.min(1,v));
+function hx(h,s,l){return hslHex(wrapH(h),clamp01(s),Math.max(.04,Math.min(.96,l)));}
+function harmonies(base){const[h,s0,l0]=rgbHsl(...hexRgb(base)),s=Math.max(s0,.35),l=Math.min(Math.max(l0,.3),.7),j=()=>between(-.04,.04);
+ return[
+  ['Complementary',[hx(h,s,l),hx(h,s*.8,l+.2),hx(h+.5,s,l),hx(h+.5,s*.9,l-.15+j()),hx(h+.5,s*.7,l+.22)]],
+  ['Analogous',[hx(h-1/12,s,l+j()),hx(h-1/24,s,l+.1),hx(h,s,l),hx(h+1/24,s,l-.08),hx(h+1/12,s,l+j())]],
+  ['Triadic',[hx(h,s,l),hx(h+1/3,s,l+j()),hx(h+2/3,s,l+j()),hx(h+1/3,s*.7,l+.2),hx(h+2/3,s*.7,l+.2)]],
+  ['Split complementary',[hx(h,s,l),hx(h,s*.7,l+.22),hx(h+5/12,s,l+j()),hx(h+7/12,s,l+j()),hx(h+.5,s*.4,l+.25)]],
+  ['Shades of one colour',[.2,.35,.5,.65,.82].map(v=>hx(h,s0<.05?0:s,v+j()/2))]
+ ];}
+const MOODS=[
+ ['Calm',[[.44,.61]],[.22,.45],[.52,.82]],
+ ['Sunset',[[-.04,.12],[.92,.99]],[.55,.85],[.45,.74]],
+ ['Forest',[[.2,.42],[.07,.1]],[.28,.6],[.18,.55]],
+ ['Ocean',[[.5,.64]],[.45,.82],[.22,.72]],
+ ['Candy',[[0,1]],[.6,.92],[.7,.86]],
+ ['Autumn',[[.02,.13]],[.5,.82],[.28,.6]],
+ ['Spring',[[.17,.4],[.88,.98]],[.45,.72],[.62,.84]],
+ ['Vintage',[[.05,.16],[.47,.55]],[.18,.4],[.42,.72]],
+ ['Night sky',[[.6,.78]],[.35,.7],[.1,.45]]
+];
+function moodPalette([,ranges,sr,lr]){const out=[];for(let i=0;i<5;i++){const r=ranges[i%ranges.length];out.push(hx(between(r[0],r[1]),between(sr[0],sr[1]),between(lr[0],lr[1])));}
+ return out.sort((a,b)=>rgbHsl(...hexRgb(a))[2]-rgbHsl(...hexRgb(b))[2]);}
+function ideaSwatch(c){const b=swatch(c);b.classList.add('isw');return b;}
+function useIdea(name,cols){const tints=cols.map(c=>{const[h,s,l]=rgbHsl(...hexRgb(c));return hslHex(h,s*.85,Math.min(.92,l+(1-l)*.45));});
+ S.myPal={name:'Idea: '+name,colors:[...cols,...tints]};const i=PALETTES.findIndex(p=>p.idea);const entry=Object.assign([S.myPal.name,S.myPal.colors],{idea:true});
+ if(i>=0)PALETTES[i]=entry;else PALETTES.push(entry);S.palette=PALETTES.findIndex(p=>p.idea);renderPalette();saveSettings();toast('"'+name+'" is now your palette');}
+function renderIdeas(){const tabs=[['harmony','From my colour'],['mood','Moods']];
+ $('#ideaTabs').replaceChildren(...tabs.map(([v,l])=>{const c=el('button','chip',l);c.setAttribute('aria-pressed',v===ideaMode);c.onclick=()=>{ideaMode=v;renderIdeas();};return c;}));
+ const list=ideaMode==='harmony'?harmonies(S.color):MOODS.map(m=>[m[0],moodPalette(m)]);
+ $('#ideaBase').textContent=ideaMode==='harmony'?'Matching colours for '+S.color+'. Pick a new colour, then tap New ideas.':'Tap New ideas for fresh combinations.';
+ $('#ideaList').replaceChildren(...list.map(([name,cols])=>{const card=el('div','idea'),top=el('div','itop'),use=el('button','iuse','Use as palette'),row=el('div','irow');
+  use.setAttribute('aria-label','Use '+name+' as palette');use.onclick=()=>useIdea(name,cols);top.append(el('span','iname',name),use);row.append(...cols.map(ideaSwatch));card.append(top,row);return card;}));
+ markSel();}
+$('#ideaNew').onclick=()=>{ideaSeed=(Date.now()%2147483646)+1;renderIdeas();};
+if(S.myPal&&Array.isArray(S.myPal.colors))PALETTES.push(Object.assign([S.myPal.name,S.myPal.colors],{idea:true}));
+if(!(S.palette>=0&&S.palette<PALETTES.length))S.palette=0;
+ideaSeed=(Date.now()%2147483646)+1;
+/* ---------- quick palette ---------- */
+const fpal=$('#fpal'),fpHead=$('#fpHead');
+function renderFpal(){if(!fpal||fpal.hidden)return;$('#fpName').textContent=PALETTES[S.palette][0];
+ $('#fpSwatches').replaceChildren(...PALETTES[S.palette][1].map(swatch));
+ $('#fpNeutrals').replaceChildren(...['#FFFFFF','#C8C8C8','#8C8C8C','#4A4A4A','#000000'].map(swatch));
+ const rec=S.recent.slice(0,10);$('#fpRecentLbl').hidden=!rec.length;$('#fpRecent').hidden=!rec.length;$('#fpRecent').replaceChildren(...rec.map(swatch));markSel();}
+function placeFpal(){const w=fpal.offsetWidth||228,h=fpal.offsetHeight||300;let p=S.fpalPos||{x:innerWidth-w-24,y:130};
+ const x=Math.max(8,Math.min(innerWidth-w-8,p.x)),y=Math.max(8,Math.min(innerHeight-h-8,p.y));fpal.style.left=x+'px';fpal.style.top=y+'px';S.fpalPos={x,y};}
+function showFpal(on){S.fpalOpen=on;fpal.hidden=!on;$('#fpalBtn').setAttribute('aria-pressed',on);if(on){renderFpal();placeFpal();}saveSettings();}
+$('#fpalBtn').onclick=()=>showFpal(fpal.hidden);
+$('#fpClose').onclick=()=>showFpal(false);
+$('#fpPrev').onclick=()=>{S.palette=(S.palette+PALETTES.length-1)%PALETTES.length;renderPalette();saveSettings();};
+$('#fpNext').onclick=()=>{S.palette=(S.palette+1)%PALETTES.length;renderPalette();saveSettings();};
+$('#fpDrop').onclick=()=>setDropping(!dropping);
+let fpDrag=null;
+fpHead.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;fpDrag={dx:e.clientX-fpal.offsetLeft,dy:e.clientY-fpal.offsetTop};try{fpHead.setPointerCapture(e.pointerId);}catch(_){}});
+fpHead.addEventListener('pointermove',e=>{if(!fpDrag)return;S.fpalPos={x:e.clientX-fpDrag.dx,y:e.clientY-fpDrag.dy};placeFpal();});
+const fpEnd=()=>{if(fpDrag){fpDrag=null;saveSettings();}};
+fpHead.addEventListener('pointerup',fpEnd);fpHead.addEventListener('pointercancel',fpEnd);
+addEventListener('resize',()=>{if(!fpal.hidden)placeFpal();});
+
+/* ---------- paw cursor ---------- */
+const pawCur=$('#pawCur');
+function pawZone(t){if(!t||!t.closest)return 'paw';if(t.closest('.stage'))return null;
+ if(t.closest('.rail,.fpal,[data-in~="brushes"],[data-in~="color"],#brushEd'))return 'brush';return 'paw';}
+function pawHide(){if(!pawCur.hidden){pawCur.hidden=true;document.documentElement.classList.remove('paw-on');}}
+document.addEventListener('pointermove',e=>{if(e.pointerType==='touch'){pawHide();return;}
+ const z=pawZone(e.target);if(!z){pawHide();return;}
+ if(pawCur.dataset.kind!==z)pawCur.dataset.kind=z;if(pawCur.hidden){pawCur.hidden=false;document.documentElement.classList.add('paw-on');}
+ pawCur.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)';},{passive:true,capture:true});
+document.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')pawHide();},true);
+document.addEventListener('pointerout',e=>{if(!e.relatedTarget)pawHide();});
+addEventListener('blur',pawHide);
+
+renderBrushGrid();setTool(S.tool);setColor(S.color);renderPalette();renderRecent();if(S.fpalOpen)showFpal(true);fit();
 (async()=>{const last=lsGet('sw-last');let rec=null;if(last){try{rec=await dbGet(last);}catch(e){}}
  if(rec){try{await openArt(rec);return;}catch(e){}}
  lineX.clearRect(0,0,N,N);prepLine(lineX,4);TEMPLATES[0].draw(lineX);rebuildWalls();newDoc('Mandala');status('');})();
